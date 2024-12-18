@@ -1,0 +1,68 @@
+*&---------------------------------------------------------------------*
+*& Include          ZBMM0010C01
+*&---------------------------------------------------------------------*
+CLASS LCL_EVENT_HANDLER DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      ON_HOTSPOT_CLICK FOR EVENT HOTSPOT_CLICK OF CL_GUI_ALV_GRID
+        IMPORTING ES_ROW_NO E_COLUMN_ID,
+
+      ON_TOOLBAR       FOR EVENT TOOLBAR OF CL_GUI_ALV_GRID
+        IMPORTING E_OBJECT,
+
+      ON_USER_COMMAND  FOR EVENT USER_COMMAND OF CL_GUI_ALV_GRID
+        IMPORTING E_UCOMM.
+ENDCLASS.
+
+CLASS LCL_EVENT_HANDLER IMPLEMENTATION.
+  METHOD ON_HOTSPOT_CLICK.
+    "TAB STRIP DATA 초기화.
+    CLEAR ZSBMM1010_SUB.
+    "ALV에서 선택한 MATCODE에 대한 정보를 WORK AREA에 할당.
+    READ TABLE GT_DATA100 INTO GS_DATA100 INDEX ES_ROW_NO-ROW_ID.
+
+    CASE E_COLUMN_ID-FIELDNAME.
+        " MATCODE HOTSPOT을 클릭했을 때.
+      WHEN 'MATCODE'.
+        " '구매 정보' TAB 데이터.
+        PERFORM GET_PURCHASE.
+
+        " '판매 정보' TAB 데이터.
+        PERFORM GET_SALES.
+
+        " '생산 정보' TAB 데이터.
+        PERFORM GET_PRODUCTION.
+
+        " 조회 조건 OUTPUT FIELD MATNAME 값 초기화.
+        CLEAR GS_DATA100-MATNAME.
+
+        CALL SCREEN 170
+          STARTING AT 80 7.
+
+        " PBO 실행.
+*        CL_GUI_CFW=>SET_NEW_OK_CODE(
+*                  EXPORTING
+*                    NEW_CODE = 'ENTER').
+
+        " 사원ID HOTSPOT을 클릭했을 때.
+      WHEN 'STAMP_USER_F'.
+        PERFORM GET_CRE_EMP.
+        CALL SCREEN 160
+          STARTING AT 80 7.
+
+      WHEN   'STAMP_USER_L'.
+        PERFORM GET_CHA_EMP.
+        CALL SCREEN 160
+          STARTING AT 80 7.
+    ENDCASE.
+  ENDMETHOD.
+
+  METHOD ON_TOOLBAR.
+    PERFORM HANDLE_TOOLBAR USING E_OBJECT.
+  ENDMETHOD.
+
+  METHOD ON_USER_COMMAND.
+    PERFORM HANDLE_USER_COMMAND USING E_UCOMM.
+  ENDMETHOD.
+
+ENDCLASS.
